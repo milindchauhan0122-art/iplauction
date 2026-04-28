@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>IPL Auction PRO</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      text-align: center;
+      color: white;
+    }
+
+    /* 🎥 VIDEO BACKGROUND */
+    #bgVideo {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      min-width: 100%;
+      min-height: 100%;
+      object-fit: cover;
+      z-index: -2;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: -1;
+    }
+
+    h1 {
+      color: gold;
+      font-size: 42px;
+      text-shadow: 0 0 10px gold;
+    }
+
+    #entry {
+      font-size: 28px;
+      color: cyan;
+      animation: pop 0.8s ease;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 6px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(45deg,#ff512f,#dd2476);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      transform: scale(1.1);
+    }
+
+    #timer {
+      font-size: 30px;
+      color: red;
+    }
+
+    #currentBid {
+      font-size: 28px;
+      color: #00e676;
+    }
+
+    .teams {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+    }
+
+    .team-card {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 15px;
+      margin: 10px;
+      width: 260px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      padding: 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    @keyframes pop {
+      0% {transform: scale(0);}
+      100% {transform: scale(1);}
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- 🎥 BACKGROUND VIDEO -->
+<video autoplay muted loop id="bgVideo">
+  <source src="C:\Users\91987\Videos\Screen Recordings\Screen Recording 2026-04-27 215616.mp4">
+</video>
+
+<h1>🏏 IPL Auction</h1>
+
+<h2 id="entry">New Player Coming...</h2>
+
+<h2 id="currentPlayer"></h2>
+<p>Role: <span id="role"></span></p>
+<p>Base Price: ₹<span id="price"></span> Cr</p>
+
+<div id="teamButtons"></div>
+
+<h2>Current Bid: ₹<span id="currentBid">0</span> Cr</h2>
+<h3>Highest Bidder: <span id="bidder">None</span></h3>
+
+<h2>⏱️ Time Left: <span id="timer">50</span>s</h2>
+
+<button onclick="sellPlayer()">Sell Player</button>
+
+<div class="teams" id="teamsContainer"></div>
+
+<script>
+
+
+const players = [
+  {name:"Virat Kohli",role:"Batsman",price:2},
+  {name:"Rohit Sharma",role:"Batsman",price:2},
+  {name:"Shubman Gill",role:"Batsman",price:2},
+  {name:"Suryakumar Yadav",role:"Batsman",price:2},
+  {name:"Shreyas Iyer",role:"Batsman",price:2},
+  {name:"Ruturaj Gaikwad",role:"Batsman",price:1.5},
+  {name:"Tilak Varma",role:"Batsman",price:1},
+  {name:"Rinku Singh",role:"Batsman",price:1.5},
+  {name:"Rahul Tripathi",role:"Batsman",price:1},
+
+  {name:"MS Dhoni",role:"Wicketkeeper",price:1.5},
+  {name:"KL Rahul",role:"Wicketkeeper",price:2},
+  {name:"Rishabh Pant",role:"Wicketkeeper",price:2},
+  {name:"Ishan Kishan",role:"Wicketkeeper",price:1.5},
+  {name:"Sanju Samson",role:"Wicketkeeper",price:1.5},
+
+  {name:"Hardik Pandya",role:"All-Rounder",price:2},
+  {name:"Ravindra Jadeja",role:"All-Rounder",price:2},
+  {name:"Axar Patel",role:"All-Rounder",price:1.5},
+  {name:"Washington Sundar",role:"All-Rounder",price:1},
+  {name:"Shivam Dube",role:"All-Rounder",price:1},
+
+  {name:"Jasprit Bumrah",role:"Bowler",price:2},
+  {name:"Mohammed Shami",role:"Bowler",price:1.5},
+  {name:"Mohammed Siraj",role:"Bowler",price:1.5},
+  {name:"Bhuvneshwar Kumar",role:"Bowler",price:1.5},
+  {name:"Yuzvendra Chahal",role:"Bowler",price:1.5},
+  {name:"Kuldeep Yadav",role:"Bowler",price:1.5},
+  {name:"Arshdeep Singh",role:"Bowler",price:1},
+  {name:"Deepak Chahar",role:"Bowler",price:1},
+  {name:"Harshal Patel",role:"Bowler",price:1},
+
+  {name:"David Warner",role:"Batsman",price:2},
+  {name:"Steve Smith",role:"Batsman",price:1.5},
+  {name:"Kane Williamson",role:"Batsman",price:2},
+  {name:"Joe Root",role:"Batsman",price:2},
+  {name:"Babar Azam",role:"Batsman",price:2},
+
+  {name:"Ben Stokes",role:"All-Rounder",price:2},
+  {name:"Glenn Maxwell",role:"All-Rounder",price:1.5},
+  {name:"Andre Russell",role:"All-Rounder",price:1.5},
+  {name:"Marcus Stoinis",role:"All-Rounder",price:1.5},
+  {name:"Sam Curran",role:"All-Rounder",price:2},
+
+  {name:"Mitchell Starc",role:"Bowler",price:2},
+  {name:"Pat Cummins",role:"All-Rounder",price:2},
+  {name:"Kagiso Rabada",role:"Bowler",price:2},
+  {name:"Trent Boult",role:"Bowler",price:1.5},
+  {name:"Anrich Nortje",role:"Bowler",price:1.5},
+
+  {name:"Jos Buttler",role:"Wicketkeeper",price:2},
+  {name:"Quinton de Kock",role:"Wicketkeeper",price:1.5},
+  {name:"Nicholas Pooran",role:"Wicketkeeper",price:1.5},
+
+  {name:"Rashid Khan",role:"Bowler",price:2},
+  {name:"Sunil Narine",role:"All-Rounder",price:1.5},
+  {name:"Varun Chakravarthy",role:"Bowler",price:1.5}
+];
+
+// 🔀 Shuffle
+players.sort(() => Math.random() - 0.5);
+
+const teams = [
+  {name:"CSK",budget:100,players:[]},
+  {name:"RCB",budget:100,players:[]},
+  {name:"MI",budget:100,players:[]}
+];
+
+let index=0,currentBid=0,highestBidder=null,timeLeft=50,timer;
+
+function startTimer(){
+  clearInterval(timer);
+  timeLeft=50;
+  timer=setInterval(()=>{
+    timeLeft--;
+    document.getElementById("timer").innerText=timeLeft;
+    if(timeLeft<=0){clearInterval(timer);sellPlayer();}
+  },1000);
+}
+
+function showPlayer(){
+  if(index>=players.length){alert("🏆 Auction Finished!");return;}
+  const p=players[index];
+
+  document.getElementById("entry").innerText="🔥 "+p.name+" ENTERS AUCTION!";
+  currentBid=p.price; highestBidder=null;
+
+  document.getElementById("currentPlayer").innerText=p.name;
+  document.getElementById("role").innerText=p.role;
+  document.getElementById("price").innerText=p.price;
+  document.getElementById("currentBid").innerText=currentBid;
+  document.getElementById("bidder").innerText="None";
+
+  startTimer();
+}
+
+function createButtons(){
+  const c=document.getElementById("teamButtons");
+  teams.forEach((t,i)=>{
+    const b=document.createElement("button");
+    b.innerText=t.name+" Bid";
+    b.onclick=()=>bid(i);
+    c.appendChild(b);
+  });
+}
+
+function bid(i){
+  const t=teams[i];
+  if(t.budget<currentBid+1){alert(t.name+" no money!");return;}
+  currentBid++; highestBidder=i;
+
+  document.getElementById("currentBid").innerText=currentBid;
+  document.getElementById("bidder").innerText=t.name;
+
+  startTimer(); // reset timer
+}
+
+function sellPlayer(){
+  clearInterval(timer);
+  if(highestBidder!==null){
+    const t=teams[highestBidder],p=players[index];
+    t.players.push(p.name+" ₹"+currentBid+"Cr");
+    t.budget-=currentBid;
+  }
+  index++; renderTeams(); showPlayer();
+}
+
+function renderTeams(){
+  const c=document.getElementById("teamsContainer"); c.innerHTML="";
+  teams.forEach(t=>{
+    const d=document.createElement("div");
+    d.className="team-card";
+    let list=""; t.players.forEach(p=>list+="<li>"+p+"</li>");
+    d.innerHTML=`<h3>${t.name} ₹${t.budget}Cr</h3><ul>${list}</ul>`;
+    c.appendChild(d);
+  });
+}
+
+createButtons();
+showPlayer();
+renderTeams();
+
+</script>
+
+</body>
+</html>
